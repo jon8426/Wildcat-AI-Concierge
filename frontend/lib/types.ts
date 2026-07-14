@@ -95,15 +95,11 @@ export interface ChatRequest {
 export interface ChatResponse {
   answer: string
   sources: Source[]
-  /** Populated when the query triggers a workflow */
-  workflow_card?: WorkflowCard
-  /** Related departments pulled from knowledge base */
-  relevant_departments?: Department[]
+  departments: Department[]
+  workflow: WorkflowCard | null
+  confidence: number
   session_id: string
-  /** Whether the response was generated in dev/mock mode */
-  is_mock?: boolean
-  /** Model identifier used for the response */
-  model_used?: string
+  detected_language: 'en' | 'es'
 }
 
 // ─── Knowledge Endpoints ───────────────────────────────────────────────────────

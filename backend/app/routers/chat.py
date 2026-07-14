@@ -108,7 +108,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
         rag_engine = request.app.state.rag_engine
 
         # Query the RAG engine
-        answer, raw_metadatas, confidence = rag_engine.query(question, history)
+        answer, raw_metadatas, confidence, language = rag_engine.query(question, history)
 
         # Convert metadata dicts to Source models (pair with document text when available)
         sources: List[Source] = [
@@ -131,6 +131,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
             workflow=workflow,
             confidence=round(confidence, 4),
             session_id=session_id,
+            detected_language=language,
         )
 
     except Exception as exc:  # noqa: BLE001
@@ -155,4 +156,5 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
             workflow=None,
             confidence=0.0,
             session_id=session_id,
+            detected_language="en",
         )

@@ -11,6 +11,8 @@ import type { ChatMessage } from '@/lib/types'
 
 interface MessageBubbleProps {
   message: ChatMessage
+  /** Detected language of this message's response ('en' | 'es') */
+  detectedLanguage?: 'en' | 'es'
   /** Optional: fired when user clicks thumbs-up */
   onThumbsUp?: (messageId?: string) => void
   /** Optional: fired when user clicks thumbs-down */
@@ -128,11 +130,12 @@ function FeedbackButtons({
 
 // ─── MessageBubble ────────────────────────────────────────────────────────────
 
-export function MessageBubble({ message, onThumbsUp, onThumbsDown, className }: MessageBubbleProps) {
+export function MessageBubble({ message, detectedLanguage, onThumbsUp, onThumbsDown, className }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const timeLabel = message.timestamp
     ? formatTime(message.timestamp)
     : undefined
+  const isSpanish = !isUser && detectedLanguage === 'es'
 
   return (
     <div
@@ -210,6 +213,15 @@ export function MessageBubble({ message, onThumbsUp, onThumbsDown, className }: 
 
           {!isUser && (
             <>
+              {isSpanish && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400"
+                  aria-label="Response in Spanish"
+                  title="Respondiendo en español"
+                >
+                  🇲🇽 ES
+                </span>
+              )}
               <CopyButton text={message.content} messageId={message.id} />
               <FeedbackButtons
                 messageId={message.id}

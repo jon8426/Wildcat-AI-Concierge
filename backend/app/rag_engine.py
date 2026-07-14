@@ -16,6 +16,35 @@ from typing import Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+# Language detection
+# ---------------------------------------------------------------------------
+
+# Common Spanish words/phrases that reliably indicate Spanish input
+_SPANISH_INDICATORS = [
+    r"\bcómo\b", r"\bdónde\b", r"\bqué\b", r"\bcuál\b", r"\bcuándo\b",
+    r"\bquién\b", r"\bpor\s+favor\b", r"\bgracias\b", r"\bnecesito\b",
+    r"\bquiero\b", r"\bpuedo\b", r"\bhay\b", r"\bestoy\b", r"\btengo\b",
+    r"\bpuede\b", r"\bdónde\b", r"\bcómo\s+puedo\b", r"\bcómo\s+me\b",
+    r"\bestudiant[eo]\b", r"\buniversidad\b", r"\bcampus\b.*\bservicios\b",
+    r"\bservicio[s]?\b", r"\bapartamento\b", r"\bestacionamiento\b",
+    r"\bcomida\b", r"\bcafetería\b", r"\baccesibilidad\b", r"\bayuda\b",
+    r"\bclases\b", r"\bhorario\b", r"\bmatrícula\b", r"\bbeca\b",
+    r"\bcomo\b", r"\bdonde\b", r"\bque\b", r"\bpara\b.*\bestudiant",
+]
+
+def detect_language(text: str) -> str:
+    """
+    Detect whether the input is Spanish or English.
+    Returns 'es' for Spanish, 'en' for English.
+    Uses lightweight keyword matching — no external library needed.
+    """
+    text_lower = text.lower()
+    for pattern in _SPANISH_INDICATORS:
+        if re.search(pattern, text_lower):
+            return "es"
+    return "en"
+
+
 # Workflow intent patterns
 # ---------------------------------------------------------------------------
 _WORKFLOW_PATTERNS: Dict[str, List[str]] = {
@@ -446,7 +475,7 @@ class RAGEngine:
         self,
         question: str,
         chat_history: Optional[List[dict]] = None,
-    ) -> Tuple[str, List[dict], float]:
+    ) -> Tuple[str, List[dict], float, str]:
         """
         Retrieve relevant chunks and generate an answer.
 
@@ -455,12 +484,16 @@ class RAGEngine:
             chat_history: Optional list of prior {role, content} dicts.
 
         Returns:
-            (answer_text, source_docs, confidence_score)
-            where source_docs is a list of metadata dicts and
-            confidence_score is a float in [0, 1].
+            (answer_text, source_docs, confidence_score, detected_language)
+            where source_docs is a list of metadata dicts,
+            confidence_score is a float in [0, 1], and
+            detected_language is 'en' or 'es'.
         """
         if not self._initialised:
             self.initialize()
+
+        # Detect language before querying
+        language = detect_language(question)
 
         # Embed the question
         q_embedding = self._embed_fn([question])[0]
@@ -482,23 +515,30 @@ class RAGEngine:
 
         # Generate answer
         if self._bedrock_client is not None:
-            answer = self._bedrock_answer(question, documents, chat_history or [])
+            answer = self._bedrock_answer(question, documents, chat_history or [], language)
         else:
-            answer = self._build_mock_answer(question, documents, metadatas)
+            answer = self._build_mock_answer(question, documents, metadatas, language)
 
-        return answer, metadatas, confidence
+        return answer, metadatas, confidence, language
 
     def _build_mock_answer(
         self,
         question: str,
         documents: List[str],
         metadatas: List[dict],
+        language: str = "en",
     ) -> str:
         """
         Construct a contextual answer from retrieved chunks without an LLM.
-        Useful in dev mode to demonstrate the pipeline end-to-end.
+        Responds in Spanish when language='es'.
         """
         if not documents:
+            if language == "es":
+                return (
+                    "Lo siento, no tengo información específica sobre ese tema en mi "
+                    "base de conocimientos en este momento. Por favor, comuníquese "
+                    "directamente con el departamento correspondiente de CSU Chico para obtener ayuda."
+                )
             return (
                 "I'm sorry, I don't have specific information about that topic in my "
                 "knowledge base right now. Please contact the relevant CSU Chico "
@@ -509,7 +549,11 @@ class RAGEngine:
         top_docs = documents[:3]
         top_meta = metadatas[:3]
 
-        intro = f"Here's what I found regarding your question about **{question.strip('?')}**:\n\n"
+        if language == "es":
+            intro = f"Aquí está lo que encontré sobre **{question.strip('?')}**:\n\n"
+        else:
+            intro = f"Here's what I found regarding your question about **{question.strip('?')}**:\n\n"
+
         body_parts = []
         for doc, meta in zip(top_docs, top_meta):
             title = meta.get("title", "Campus Resource")
@@ -519,9 +563,10 @@ class RAGEngine:
         sources_note = ""
         urls = [m.get("url", "") for m in top_meta if m.get("url")]
         if urls:
-            sources_note = (
-                "\n\nFor more details, visit: " + " | ".join(urls[:2])
-            )
+            if language == "es":
+                sources_note = "\n\nPara más información, visite: " + " | ".join(urls[:2])
+            else:
+                sources_note = "\n\nFor more details, visit: " + " | ".join(urls[:2])
 
         return intro + "\n\n".join(body_parts) + sources_note
 
@@ -530,6 +575,7 @@ class RAGEngine:
         question: str,
         documents: List[str],
         chat_history: List[dict],
+        language: str = "en",
     ) -> str:
         """Send context + question to Claude via AWS Bedrock and return the answer."""
         import json
@@ -538,18 +584,28 @@ class RAGEngine:
         history_text = ""
         if chat_history:
             turns = []
-            for msg in chat_history[-6:]:  # last 3 exchanges
+            for msg in chat_history[-6:]:
                 role = msg.get("role", "user").capitalize()
                 turns.append(f"{role}: {msg.get('content', '')}")
             history_text = "\n".join(turns) + "\n\n"
 
-        system_prompt = (
-            "You are the Wildcat AI Concierge, a helpful assistant for California State "
-            "University, Chico (CSU Chico). Answer the student's question using ONLY the "
-            "provided context. Be concise, friendly, and accurate. If the context does "
-            "not contain enough information, say so and direct the student to the "
-            "appropriate campus office."
-        )
+        if language == "es":
+            system_prompt = (
+                "Eres el Conserje Virtual Wildcat, un asistente útil para la Universidad "
+                "Estatal de California, Chico (CSU Chico). El estudiante escribe en español, "
+                "por lo tanto DEBES responder completamente en español. "
+                "Responde usando ÚNICAMENTE el contexto proporcionado. "
+                "Sé conciso, amable y preciso. Si el contexto no contiene suficiente "
+                "información, dilo y dirige al estudiante a la oficina universitaria apropiada."
+            )
+        else:
+            system_prompt = (
+                "You are the Wildcat AI Concierge, a helpful assistant for California State "
+                "University, Chico (CSU Chico). Answer the student's question using ONLY the "
+                "provided context. Be concise, friendly, and accurate. If the context does "
+                "not contain enough information, say so and direct the student to the "
+                "appropriate campus office."
+            )
 
         user_message = (
             f"Context from CSU Chico knowledge base:\n{context}\n\n"

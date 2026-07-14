@@ -83,6 +83,10 @@ class ChatResponse(BaseModel):
         default_factory=lambda: str(uuid.uuid4()),
         description="Session identifier echoed back (or newly generated)",
     )
+    detected_language: str = Field(
+        default="en",
+        description="Detected language of the user's message: 'en' or 'es'",
+    )
 
 
 # ── Knowledge endpoint models ─────────────────────────────────────────────────

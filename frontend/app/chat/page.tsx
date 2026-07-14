@@ -33,6 +33,7 @@ interface AssistantMeta {
   departments: Department[]
   workflow?: WorkflowCardType
   confidence?: number
+  detected_language?: 'en' | 'es'
 }
 
 interface DisplayMessage extends ChatMessage {
@@ -141,12 +142,10 @@ function ChatContent() {
           timestamp: new Date().toISOString(),
           meta: {
             sources: response.sources ?? [],
-            departments: response.relevant_departments ?? [],
-            workflow: response.workflow_card,
-            // Derive confidence from highest source relevance score if present
-            confidence: response.sources?.length
-              ? Math.max(...response.sources.map((s) => s.relevance_score ?? 0))
-              : undefined,
+            departments: response.departments ?? [],
+            workflow: response.workflow ?? undefined,
+            confidence: response.confidence,
+            detected_language: response.detected_language,
           },
         }
 
@@ -283,6 +282,7 @@ function ChatContent() {
               <div key={msg.id} className="flex flex-col gap-2">
                 <MessageBubble
                   message={msg}
+                  detectedLanguage={msg.meta?.detected_language}
                   onThumbsUp={() => {}} // extend with analytics as needed
                   onThumbsDown={() => {}}
                 />
