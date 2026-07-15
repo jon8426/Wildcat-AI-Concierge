@@ -495,8 +495,14 @@ class RAGEngine:
         # Detect language before querying
         language = detect_language(question)
 
+        # For Spanish queries, also search with English translation of key terms
+        # (embedding model is English-focused)
+        search_text = question
+        if language == "es":
+            search_text = self._translate_es_keywords(question)
+
         # Embed the question
-        q_embedding = self._embed_fn([question])[0]
+        q_embedding = self._embed_fn([search_text])[0]
 
         # Retrieve top-k chunks from ChromaDB
         results = self._collection.query(
@@ -521,6 +527,61 @@ class RAGEngine:
 
         return answer, metadatas, confidence, language
 
+    # Common Spanish-to-English translations for search queries
+    _ES_TO_EN = {
+        "autobuses": "bus transit",
+        "autobús": "bus",
+        "transporte": "transportation",
+        "horario": "schedule",
+        "mapa": "map campus",
+        "estacionamiento": "parking",
+        "comida": "dining food",
+        "comedor": "dining",
+        "biblioteca": "library",
+        "clases": "classes schedule",
+        "carreras": "majors programs",
+        "programas": "programs majors",
+        "admisión": "admissions",
+        "admisiones": "admissions",
+        "costos": "cost tuition",
+        "ayuda financiera": "financial aid",
+        "becas": "scholarships",
+        "vivienda": "housing",
+        "dormitorios": "housing dorms",
+        "seguridad": "safety security",
+        "salud": "health wellness",
+        "eventos": "events",
+        "deportes": "athletics sports",
+        "centro": "downtown",
+        "información": "information",
+        "dónde": "where",
+        "cómo": "how",
+        "cuándo": "when",
+        "qué": "what",
+        "aplicar": "apply admissions",
+        "inscribir": "enroll register",
+        "matrícula": "tuition enrollment",
+        "campus": "campus",
+        "universidad": "university",
+        "estudiante": "student",
+        "accesibilidad": "accessibility",
+        "bicicleta": "bike bicycle",
+        "caminar": "walk walking",
+        "servicios": "services",
+    }
+
+    def _translate_es_keywords(self, question: str) -> str:
+        """Translate Spanish keywords to English for better embedding search."""
+        text = question.lower()
+        translated_terms = []
+        for es_term, en_term in self._ES_TO_EN.items():
+            if es_term in text:
+                translated_terms.append(en_term)
+        if translated_terms:
+            return " ".join(translated_terms)
+        # Fallback: return original question (model may still find something)
+        return question
+
     def _build_mock_answer(
         self,
         question: str,
@@ -531,6 +592,7 @@ class RAGEngine:
         """
         Construct a contextual answer from retrieved chunks without an LLM.
         Responds in Spanish when language='es'.
+        Cleans up partial sentences and formats for readability.
         """
         if not documents:
             if language == "es":
@@ -545,30 +607,78 @@ class RAGEngine:
                 "department directly for assistance."
             )
 
-        # Use the top-4 most relevant chunks by similarity
-        top_docs = documents[:4]
-        top_meta = metadatas[:4]
+        def _clean_snippet(text: str) -> str:
+            """Trim to complete sentences and clean up fragments."""
+            # Remove leading partial sentence (starts with lowercase or no capital)
+            lines = text.strip().split('\n')
+            # If first line looks like a fragment (doesn't start with uppercase, #, -, *, or **)
+            if lines and lines[0] and not lines[0][0].isupper() and not lines[0][0] in '#-*|':
+                # Find the first sentence boundary or line break
+                first_period = lines[0].find('. ')
+                first_newline = text.find('\n')
+                cut = min(
+                    first_period + 2 if first_period >= 0 else len(text),
+                    first_newline if first_newline >= 0 else len(text)
+                )
+                text = text[cut:].strip()
 
-        if language == "es":
-            intro = f"Aquí está lo que encontré sobre **{question.strip('?')}**:\n\n"
-        else:
-            intro = f"Here's what I found regarding your question about **{question.strip('?')}**:\n\n"
+            # Trim to last complete sentence (ends with . ? ! or a markdown line)
+            if len(text) > 400:
+                text = text[:500]
+                # Find last sentence end
+                for end_char in ['. ', '.\n', '?\n', '!\n', '? ', '! ']:
+                    last = text.rfind(end_char)
+                    if last > 200:
+                        text = text[:last + 1]
+                        break
+                else:
+                    # Fall back to last newline
+                    last_nl = text.rfind('\n')
+                    if last_nl > 200:
+                        text = text[:last_nl]
 
+            return text.strip()
+
+        # Use top-3 most relevant chunks
+        top_docs = documents[:3]
+        top_meta = metadatas[:3]
+
+        # Clean and deduplicate chunks
+        seen_titles = set()
         body_parts = []
         for doc, meta in zip(top_docs, top_meta):
             title = meta.get("title", "Campus Resource")
-            snippet = doc[:500].rstrip() + ("..." if len(doc) > 500 else "")
-            body_parts.append(f"**{title}**: {snippet}")
+            # Skip duplicate sources
+            if title in seen_titles:
+                continue
+            seen_titles.add(title)
 
+            snippet = _clean_snippet(doc)
+            if not snippet:
+                continue
+            body_parts.append(f"**{title}**\n\n{snippet}")
+
+        if not body_parts:
+            # Fallback if cleaning removed everything
+            snippet = documents[0][:300]
+            title = metadatas[0].get("title", "Campus Resource")
+            body_parts.append(f"**{title}**\n\n{snippet}")
+
+        if language == "es":
+            intro = f"Esto es lo que encontré sobre tu pregunta:\n\n"
+        else:
+            intro = f"Here's what I found:\n\n"
+
+        # Add source links if available
         sources_note = ""
         urls = [m.get("url", "") for m in top_meta if m.get("url")]
         if urls:
             if language == "es":
-                sources_note = "\n\nPara más información, visite: " + " | ".join(urls[:2])
+                sources_note = "\n\n---\n📎 Para más información: " + " | ".join(urls[:2])
             else:
-                sources_note = "\n\nFor more details, visit: " + " | ".join(urls[:2])
+                sources_note = "\n\n---\n📎 For more details: " + " | ".join(urls[:2])
 
-        return intro + "\n\n".join(body_parts) + sources_note
+        return intro + "\n\n---\n\n".join(body_parts) + sources_note
 
     def _bedrock_answer(
         self,

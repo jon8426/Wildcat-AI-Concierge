@@ -301,9 +301,8 @@ function ChatContent() {
           >
             {messages.map((msg, idx) => {
               // Determine if this is the last assistant message
-              const isLastAssistant =
-                msg.role === 'assistant' &&
-                idx === messages.map((m) => m.role).lastIndexOf('assistant')
+              const lastAsstIdx = messages.reduce((acc, m, i) => m.role === 'assistant' ? i : acc, -1)
+              const isLastAssistant = msg.role === 'assistant' && idx === lastAsstIdx
 
               return (
               <div key={msg.id} ref={isLastAssistant ? lastAssistantRef : undefined} className="flex flex-col gap-2">
