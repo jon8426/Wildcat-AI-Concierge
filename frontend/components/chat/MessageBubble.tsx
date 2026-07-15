@@ -11,55 +11,50 @@ import type { ChatMessage } from '@/lib/types'
 
 interface MessageBubbleProps {
   message: ChatMessage
-  /** Detected language of this message's response ('en' | 'es') */
   detectedLanguage?: 'en' | 'es'
-  /** Optional: fired when user clicks thumbs-up */
   onThumbsUp?: (messageId?: string) => void
-  /** Optional: fired when user clicks thumbs-down */
   onThumbsDown?: (messageId?: string) => void
   className?: string
 }
 
 // ─── Copy Button ──────────────────────────────────────────────────────────────
 
-function CopyButton({ text, messageId }: { text: string; messageId?: string }) {
+function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(text)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for environments without clipboard API
       const ta = document.createElement('textarea')
       ta.value = text
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
+      ta.style.cssText = 'position:fixed;opacity:0'
       document.body.appendChild(ta)
       ta.select()
       document.execCommand('copy')
       document.body.removeChild(ta)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
+    <button
+      type="button"
       onClick={handleCopy}
-      aria-label={copied ? 'Copied to clipboard' : 'Copy answer to clipboard'}
-      title={copied ? 'Copied!' : 'Copy answer'}
-      className="text-muted-foreground hover:text-foreground"
-    >
-      {copied ? (
-        <Check className="w-3.5 h-3.5 text-green-500" aria-hidden="true" />
-      ) : (
-        <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+      aria-label={copied ? 'Copied!' : 'Copy response'}
+      title={copied ? 'Copied!' : 'Copy response'}
+      className={cn(
+        'flex h-6 w-6 items-center justify-center rounded-md transition-colors',
+        'text-muted-foreground hover:text-foreground hover:bg-muted',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
       )}
-    </Button>
+    >
+      {copied
+        ? <Check className="w-3.5 h-3.5 text-green-500" aria-hidden="true" />
+        : <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+      }
+    </button>
   )
 }
 
@@ -76,106 +71,98 @@ function FeedbackButtons({
 }) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
 
-  function handleUp() {
-    if (feedback === 'up') return
-    setFeedback('up')
-    onThumbsUp?.(messageId)
-  }
-
-  function handleDown() {
-    if (feedback === 'down') return
-    setFeedback('down')
-    onThumbsDown?.(messageId)
-  }
-
   return (
-    <div
-      className="flex items-center gap-1"
-      role="group"
-      aria-label="Was this answer helpful?"
-    >
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={handleUp}
+    <div className="flex items-center gap-0.5" role="group" aria-label="Was this answer helpful?">
+      <button
+        type="button"
+        onClick={() => { if (!feedback) { setFeedback('up'); onThumbsUp?.(messageId) } }}
         aria-label="Helpful"
         aria-pressed={feedback === 'up'}
-        title="Helpful"
         disabled={feedback !== null}
         className={cn(
-          'text-muted-foreground hover:text-green-500 transition-colors',
-          feedback === 'up' && 'text-green-500',
+          'flex h-6 w-6 items-center justify-center rounded-md transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          feedback === 'up'
+            ? 'text-green-500'
+            : 'text-muted-foreground hover:text-green-500 hover:bg-muted',
         )}
       >
         <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={handleDown}
+      </button>
+      <button
+        type="button"
+        onClick={() => { if (!feedback) { setFeedback('down'); onThumbsDown?.(messageId) } }}
         aria-label="Not helpful"
         aria-pressed={feedback === 'down'}
-        title="Not helpful"
         disabled={feedback !== null}
         className={cn(
-          'text-muted-foreground hover:text-red-500 transition-colors',
-          feedback === 'down' && 'text-red-500',
+          'flex h-6 w-6 items-center justify-center rounded-md transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          feedback === 'down'
+            ? 'text-red-500'
+            : 'text-muted-foreground hover:text-red-500 hover:bg-muted',
         )}
       >
         <ThumbsDown className="w-3.5 h-3.5" aria-hidden="true" />
-      </Button>
+      </button>
     </div>
   )
 }
 
 // ─── MessageBubble ────────────────────────────────────────────────────────────
 
-export function MessageBubble({ message, detectedLanguage, onThumbsUp, onThumbsDown, className }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  detectedLanguage,
+  onThumbsUp,
+  onThumbsDown,
+  className,
+}: MessageBubbleProps) {
   const isUser = message.role === 'user'
-  const timeLabel = message.timestamp
-    ? formatTime(message.timestamp)
-    : undefined
+  const timeLabel = message.timestamp ? formatTime(message.timestamp) : undefined
   const isSpanish = !isUser && detectedLanguage === 'es'
 
   return (
     <div
       className={cn(
-        'flex w-full gap-2',
+        'flex w-full gap-3',
         isUser ? 'justify-end chat-bubble-user' : 'justify-start chat-bubble-assistant',
         className,
       )}
       role="article"
       aria-label={`${isUser ? 'Your message' : 'Assistant message'}${timeLabel ? ` at ${timeLabel}` : ''}`}
     >
-      {/* ── Assistant Avatar ─────────────────────────────────────── */}
+      {/* ── AI Avatar ───────────────────────────────────────────── */}
       {!isUser && (
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-lg select-none mt-1"
-          aria-hidden="true"
-        >
+        <div className="avatar-ai mt-0.5" aria-hidden="true">
           🐾
         </div>
       )}
 
-      <div className={cn('flex flex-col gap-1 max-w-[85%] sm:max-w-[75%]', isUser && 'items-end')}>
-        {/* ── Bubble ─────────────────────────────────────────────── */}
+      <div className={cn('flex flex-col gap-1.5 max-w-[82%] sm:max-w-[72%]', isUser && 'items-end')}>
+        {/* ── Sender label ────────────────────────────────────────── */}
+        <span className={cn(
+          'text-[11px] font-semibold tracking-wide uppercase px-1',
+          isUser ? 'text-muted-foreground' : 'text-primary/80',
+        )}>
+          {isUser ? 'You' : 'Wildcat AI'}
+        </span>
+
+        {/* ── Bubble ──────────────────────────────────────────────── */}
         <div
           className={cn(
-            'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
+            'rounded-2xl px-4 py-3 text-sm leading-relaxed',
             isUser
-              ? 'bg-primary text-primary-foreground rounded-tr-sm'
-              : 'bg-card border border-border text-card-foreground rounded-tl-sm',
+              ? 'bubble-user rounded-tr-sm'
+              : 'bubble-ai rounded-tl-sm',
           )}
         >
           {isUser ? (
-            // User messages: plain text
             <p className="whitespace-pre-wrap break-words">{message.content}</p>
           ) : (
-            // Assistant messages: markdown
             <div className="prose max-w-none">
               <ReactMarkdown
                 components={{
-                  // Open all links in new tab
                   a: ({ href, children, ...props }) => (
                     <a
                       href={href}
@@ -196,17 +183,12 @@ export function MessageBubble({ message, detectedLanguage, onThumbsUp, onThumbsD
         </div>
 
         {/* ── Timestamp + Actions ─────────────────────────────────── */}
-        <div
-          className={cn(
-            'flex items-center gap-1 px-1',
-            isUser ? 'flex-row-reverse' : 'flex-row',
-          )}
-        >
+        <div className={cn(
+          'flex items-center gap-1.5 px-1',
+          isUser ? 'flex-row-reverse' : 'flex-row',
+        )}>
           {timeLabel && (
-            <time
-              dateTime={message.timestamp}
-              className="text-xs text-muted-foreground"
-            >
+            <time dateTime={message.timestamp} className="text-[11px] text-muted-foreground">
               {timeLabel}
             </time>
           )}
@@ -215,14 +197,13 @@ export function MessageBubble({ message, detectedLanguage, onThumbsUp, onThumbsD
             <>
               {isSpanish && (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400"
+                  className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-400"
                   aria-label="Response in Spanish"
-                  title="Respondiendo en español"
                 >
                   🇲🇽 ES
                 </span>
               )}
-              <CopyButton text={message.content} messageId={message.id} />
+              <CopyButton text={message.content} />
               <FeedbackButtons
                 messageId={message.id}
                 onThumbsUp={onThumbsUp}
@@ -233,12 +214,9 @@ export function MessageBubble({ message, detectedLanguage, onThumbsUp, onThumbsD
         </div>
       </div>
 
-      {/* ── User Avatar ──────────────────────────────────────────── */}
+      {/* ── User Avatar ─────────────────────────────────────────── */}
       {isUser && (
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-xs font-bold select-none mt-1"
-          aria-hidden="true"
-        >
+        <div className="avatar-user mt-0.5" aria-hidden="true">
           You
         </div>
       )}

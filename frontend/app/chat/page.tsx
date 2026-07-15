@@ -182,7 +182,7 @@ function ChatContent() {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: 'hsl(var(--chat-bg))' }}>
 
       {/* ── Sidebar (desktop) ──────────────────────────────────────── */}
       <div className="hidden md:flex shrink-0">
@@ -200,13 +200,11 @@ function ChatContent() {
           aria-modal="true"
           aria-label="Navigation sidebar"
         >
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
-          {/* Panel */}
           <div className="relative z-10 flex flex-col">
             <Sidebar
               onSuggestedQuestion={(q) => {
@@ -218,7 +216,7 @@ function ChatContent() {
           </div>
           <button
             type="button"
-            className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-card text-foreground border border-border shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-card text-foreground border border-border shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
@@ -232,37 +230,50 @@ function ChatContent() {
 
         {/* ── Top Bar ─────────────────────────────────────────────── */}
         <header
-          className="flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2.5 shrink-0"
+          className="flex items-center justify-between gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 py-3 shrink-0 shadow-sm"
           role="banner"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open navigation sidebar"
-              className="md:hidden"
+              className="md:hidden -ml-1"
             >
               <Menu className="w-5 h-5" aria-hidden="true" />
             </Button>
+
+            {/* Brand */}
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-sm font-semibold rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Wildcat AI Concierge — Home"
             >
-              <span aria-hidden="true">🐾</span>
-              <span className="hidden sm:inline">Wildcat AI Concierge</span>
-              <span className="sm:hidden">Wildcat AI</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-scarlet-600 to-scarlet-800 text-white shadow-sm ring-2 ring-primary/20 text-sm select-none">
+                🐾
+              </div>
+              <div className="hidden sm:flex flex-col leading-none">
+                <span className="font-bold text-sm text-foreground tracking-tight">Wildcat AI Concierge</span>
+                <span className="text-[10px] text-muted-foreground font-medium">CSU Chico</span>
+              </div>
+              <span className="sm:hidden font-bold text-sm text-foreground">Wildcat AI</span>
             </Link>
+
+            {/* Online indicator */}
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-green-500/10 border border-green-500/20 px-2.5 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+              <span className="text-[11px] font-medium text-green-600 dark:text-green-400">Online</span>
+            </div>
           </div>
 
-          <nav aria-label="Header navigation" className="hidden sm:flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
-              <Link href="/"><Home className="w-4 h-4 mr-1" aria-hidden="true" />Home</Link>
+          <nav aria-label="Header navigation" className="hidden sm:flex items-center gap-0.5">
+            <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground text-xs">
+              <Link href="/"><Home className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />Home</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
-              <Link href="/about"><Info className="w-4 h-4 mr-1" aria-hidden="true" />About</Link>
+            <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground text-xs">
+              <Link href="/about"><Info className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />About</Link>
             </Button>
           </nav>
 
@@ -270,9 +281,14 @@ function ChatContent() {
         </header>
 
         {/* ── Messages ────────────────────────────────────────────── */}
-        <ScrollArea className="flex-1 overflow-y-auto">
+        <ScrollArea className="flex-1 overflow-y-auto relative">
+          {/* Campus photo background */}
           <div
-            className="flex flex-col gap-4 px-4 py-6 max-w-3xl mx-auto w-full"
+            className="absolute inset-0 pointer-events-none campus-bg"
+            aria-hidden="true"
+          />
+          <div
+            className="relative flex flex-col gap-5 px-4 py-6 max-w-3xl mx-auto w-full"
             role="log"
             aria-live="polite"
             aria-label="Chat conversation"
@@ -283,13 +299,12 @@ function ChatContent() {
                 <MessageBubble
                   message={msg}
                   detectedLanguage={msg.meta?.detected_language}
-                  onThumbsUp={() => {}} // extend with analytics as needed
+                  onThumbsUp={() => {}}
                   onThumbsDown={() => {}}
                 />
 
-                {/* Source panel + workflow — only for assistant messages with meta */}
                 {msg.role === 'assistant' && msg.meta && (
-                  <div className="ml-10 flex flex-col gap-2">
+                  <div className="ml-11 flex flex-col gap-2">
                     {(msg.meta.sources.length > 0 || msg.meta.departments.length > 0) && (
                       <SourcePanel
                         sources={msg.meta.sources}
@@ -307,15 +322,15 @@ function ChatContent() {
 
             {/* Typing indicator */}
             {isLoading && (
-              <div className="flex items-start gap-2">
-                <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-lg select-none"
-                  aria-hidden="true"
-                >
-                  🐾
-                </div>
-                <div className="rounded-2xl rounded-tl-sm bg-card border border-border shadow-sm">
-                  <TypingIndicator />
+              <div className="flex items-start gap-3 chat-bubble-assistant">
+                <div className="avatar-ai mt-0.5" aria-hidden="true">🐾</div>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] font-semibold tracking-wide uppercase text-primary/80 px-1">
+                    Wildcat AI
+                  </span>
+                  <div className="bubble-ai rounded-2xl rounded-tl-sm">
+                    <TypingIndicator />
+                  </div>
                 </div>
               </div>
             )}
@@ -324,13 +339,14 @@ function ChatContent() {
             {error && !isLoading && (
               <div
                 role="alert"
-                className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/8 px-4 py-3 text-sm text-destructive"
               >
-                <strong className="font-semibold">Error: </strong>{error}
+                <span className="font-semibold shrink-0">⚠️ Error:</span>
+                <span className="flex-1">{error}</span>
                 <button
                   type="button"
                   onClick={() => setError(null)}
-                  className="ml-2 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                  className="shrink-0 text-xs underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded opacity-70 hover:opacity-100"
                   aria-label="Dismiss error"
                 >
                   Dismiss
@@ -343,9 +359,9 @@ function ChatContent() {
         </ScrollArea>
 
         {/* ── Suggested Chips ─────────────────────────────────────── */}
-        <div className="border-t border-border bg-background/80 backdrop-blur-sm px-4 pt-2 pb-1">
+        <div className="bg-card/80 backdrop-blur-sm border-t border-border px-4 pt-2.5 pb-2">
           <div
-            className="flex gap-2 overflow-x-auto pb-1 max-w-3xl mx-auto scrollbar-none"
+            className="flex gap-2 overflow-x-auto scrollbar-none max-w-3xl mx-auto"
             role="list"
             aria-label="Suggested questions"
           >
@@ -356,13 +372,7 @@ function ChatContent() {
                 role="listitem"
                 onClick={() => handleSend(q)}
                 disabled={isLoading}
-                className={cn(
-                  'shrink-0 rounded-full border border-border bg-card px-3 py-1.5',
-                  'text-xs text-foreground whitespace-nowrap',
-                  'hover:border-primary/50 hover:bg-primary/5 hover:text-primary',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  'transition-colors disabled:opacity-50 disabled:pointer-events-none',
-                )}
+                className="chip"
                 aria-label={`Ask: ${q}`}
               >
                 {q}
@@ -372,52 +382,59 @@ function ChatContent() {
         </div>
 
         {/* ── Input Area ──────────────────────────────────────────── */}
-        <div className="border-t border-border bg-background px-4 pt-3 pb-4 shrink-0">
+        <div className="bg-card/95 backdrop-blur-sm border-t border-border px-4 pt-3 pb-4 shrink-0">
           <form
             onSubmit={(e) => { e.preventDefault(); handleSend() }}
-            className="flex items-end gap-2 max-w-3xl mx-auto"
+            className="max-w-3xl mx-auto"
             aria-label="Send a message"
           >
-            <label htmlFor="chat-input" className="sr-only">
-              Type your message
-            </label>
-            <textarea
-              id="chat-input"
-              ref={inputRef}
-              value={inputValue}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask me about parking, dining, events, accommodations…"
-              disabled={isLoading}
-              rows={1}
-              aria-label="Message input"
-              aria-describedby="chat-input-hint"
-              className={cn(
-                'flex-1 resize-none rounded-xl border border-input bg-background px-4 py-2.5',
-                'text-sm placeholder:text-muted-foreground',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                'disabled:opacity-50 min-h-[44px] max-h-40 leading-relaxed',
-              )}
-              style={{ height: '44px' }}
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={isLoading || !inputValue.trim()}
-              aria-label="Send message"
-              title="Send (Enter)"
-              className="h-11 w-11 shrink-0 rounded-xl"
+            <label htmlFor="chat-input" className="sr-only">Type your message</label>
+
+            <div className="input-card flex items-end gap-0 px-4 py-2">
+              <textarea
+                id="chat-input"
+                ref={inputRef}
+                value={inputValue}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask me about parking, dining, events, accommodations…"
+                disabled={isLoading}
+                rows={1}
+                aria-label="Message input"
+                aria-describedby="chat-input-hint"
+                className={cn(
+                  'flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground',
+                  'focus:outline-none disabled:opacity-50',
+                  'min-h-[40px] max-h-40 leading-relaxed py-1.5',
+                )}
+                style={{ height: '40px' }}
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+                aria-label="Send message"
+                title="Send (Enter)"
+                className={cn(
+                  'ml-2 mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  inputValue.trim() && !isLoading
+                    ? 'bg-gradient-to-br from-scarlet-600 to-scarlet-800 text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed',
+                )}
+              >
+                <Send className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+
+            <p
+              id="chat-input-hint"
+              className="mt-2 text-center text-[11px] text-muted-foreground"
             >
-              <Send className="w-4 h-4" aria-hidden="true" />
-            </Button>
+              <kbd className="font-mono bg-muted px-1 py-0.5 rounded text-[10px]">Enter</kbd> to send
+              {' · '}
+              <kbd className="font-mono bg-muted px-1 py-0.5 rounded text-[10px]">Shift+Enter</kbd> for new line
+            </p>
           </form>
-          <p
-            id="chat-input-hint"
-            className="mt-1.5 text-center text-xs text-muted-foreground max-w-3xl mx-auto"
-          >
-            Press <kbd className="font-mono bg-muted px-1 rounded">Enter</kbd> to send,{' '}
-            <kbd className="font-mono bg-muted px-1 rounded">Shift+Enter</kbd> for new line.
-          </p>
         </div>
       </div>
     </div>

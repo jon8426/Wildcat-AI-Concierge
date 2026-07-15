@@ -95,21 +95,31 @@ export default function LandingPage() {
 
       <main id="main-content" className="flex-1">
 
-        {/* ── Hero — matches Chico State bold headline style ─────── */}
+        {/* ── Hero — campus photo with students ──────────────────── */}
         <section
-          className="relative bg-primary text-primary-foreground overflow-hidden"
+          className="relative overflow-hidden text-white"
           aria-labelledby="hero-heading"
         >
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }}
+          {/* Background photo of students on campus */}
+          <div
+            className="absolute inset-0"
             aria-hidden="true"
-          />
+          >
+            <img
+              src="/students-campus.jpg"
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/60 to-black/40" />
+            {/* Scarlet tint */}
+            <div className="absolute inset-0 bg-primary/30 mix-blend-multiply" />
+          </div>
 
-          <div className="relative container mx-auto max-w-6xl px-4 py-16 sm:py-24 grid md:grid-cols-2 gap-10 items-center">
+          <div className="relative container mx-auto max-w-6xl px-4 py-20 sm:py-28 grid md:grid-cols-2 gap-10 items-center">
             {/* Left: text */}
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm font-medium">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-4 py-1.5 text-sm font-medium border border-white/20">
                 <span aria-hidden="true">🐾</span>
                 <span>AI-Powered Campus Guide</span>
               </div>
@@ -122,7 +132,7 @@ export default function LandingPage() {
                 <span className="text-[#FFC72C]">Instantly.</span>
               </h1>
 
-              <p className="text-lg sm:text-xl text-primary-foreground/85 leading-relaxed max-w-lg">
+              <p className="text-lg sm:text-xl text-white/85 leading-relaxed max-w-lg">
                 The Wildcat AI Concierge answers your questions about CSU Chico
                 campus services — parking, dining, accessibility, events, and more.
                 No searching. Just ask.
@@ -144,7 +154,7 @@ export default function LandingPage() {
                   asChild
                   variant="outline"
                   size="xl"
-                  className="border-white/50 text-white bg-white/10 hover:bg-white/20 hover:border-white font-semibold text-base"
+                  className="border-white/50 text-white bg-white/10 hover:bg-white/20 hover:border-white font-semibold text-base backdrop-blur-sm"
                 >
                   <Link href="/about">How It Works</Link>
                 </Button>
@@ -153,7 +163,7 @@ export default function LandingPage() {
 
             {/* Right: quick-ask card */}
             <div className="hidden md:block">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-3">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 space-y-3 shadow-2xl">
                 <p className="text-sm font-semibold text-white/70 uppercase tracking-wider">Try asking...</p>
                 {[
                   '¿Dónde puedo estacionar?',
@@ -164,7 +174,7 @@ export default function LandingPage() {
                   <Link
                     key={q}
                     href={`/chat?q=${encodeURIComponent(q)}`}
-                    className="flex items-center justify-between gap-3 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-3 text-sm text-white transition-colors group"
+                    className="flex items-center justify-between gap-3 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-3 text-sm text-white transition-colors group backdrop-blur-sm"
                   >
                     <span>{q}</span>
                     <ChevronRight className="w-4 h-4 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
