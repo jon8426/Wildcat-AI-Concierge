@@ -145,7 +145,7 @@ export function MessageBubble({
           'text-[11px] font-semibold tracking-wide uppercase px-1',
           isUser ? 'text-muted-foreground' : 'text-primary/80',
         )}>
-          {isUser ? 'You' : 'Wildcat AI'}
+          {isUser ? 'You' : 'Wildcat Navigator'}
         </span>
 
         {/* ── Bubble ──────────────────────────────────────────────── */}

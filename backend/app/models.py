@@ -1,5 +1,5 @@
 """
-Pydantic models for the Wildcat AI Concierge API.
+Pydantic models for the Wildcat Navigator API.
 """
 from __future__ import annotations
 

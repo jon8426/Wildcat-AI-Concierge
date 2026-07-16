@@ -1,5 +1,5 @@
 """
-Wildcat AI Concierge — FastAPI application entry point.
+Wildcat Navigator — FastAPI application entry point.
 """
 from __future__ import annotations
 

@@ -70,11 +70,11 @@ export function Sidebar({ onSuggestedQuestion, className }: SidebarProps) {
         <Link
           href="/"
           className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Wildcat AI Concierge — Home"
+          aria-label="Wildcat Navigator — Home"
         >
           <span className="text-xl select-none" aria-hidden="true">🐾</span>
           <div className="leading-none">
-            <p className="font-semibold text-sm text-foreground">Wildcat AI</p>
+            <p className="font-semibold text-sm text-foreground">Wildcat Navigator</p>
             <p className="text-xs text-muted-foreground">CSU Chico</p>
           </div>
         </Link>

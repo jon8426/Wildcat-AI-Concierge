@@ -1,5 +1,5 @@
 """
-Workflow engine for the Wildcat AI Concierge.
+Workflow engine for the Wildcat Navigator.
 
 Provides pre-built step-by-step workflow cards for common CSU Chico
 campus processes.  Each workflow is a WorkflowCard with realistic

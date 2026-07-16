@@ -14,9 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Header } from '@/components/layout/Header'
 
 export const metadata: Metadata = {
-  title: 'Wildcat AI Concierge — CSU Chico',
+  title: 'Wildcat Navigator — CSU Chico',
   description:
-    'Your AI-powered campus guide for California State University, Chico. Ask questions about campus services, parking, dining, accessibility, events, and more.',
+    'Your AI-powered campus navigator for California State University, Chico. Ask questions about campus services, parking, dining, accessibility, events, and more.',
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -121,7 +121,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-4 py-1.5 text-sm font-medium border border-white/20">
                 <span aria-hidden="true">🐾</span>
-                <span>AI-Powered Campus Guide</span>
+                <span>AI-Powered Campus Navigator</span>
               </div>
 
               <h1
@@ -133,7 +133,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-lg sm:text-xl text-white/85 leading-relaxed max-w-lg">
-                The Wildcat AI Concierge answers your questions about CSU Chico
+                The Wildcat Navigator answers your questions about CSU Chico
                 campus services — parking, dining, accessibility, events, and more.
                 No searching. Just ask.
               </p>
@@ -270,7 +270,7 @@ export default function LandingPage() {
               <Button asChild size="lg" className="font-semibold">
                 <Link href="/chat">
                   <MessageSquare className="w-4 h-4" aria-hidden="true" />
-                  Open the AI Concierge
+                  Open the Wildcat Navigator
                 </Link>
               </Button>
             </div>
@@ -291,7 +291,7 @@ export default function LandingPage() {
               <span className="text-[#FFC72C]">Right Now.</span>
             </h2>
             <p className="text-lg text-primary-foreground/80 max-w-xl mx-auto">
-              No more searching through dozens of websites. The Wildcat AI Concierge
+              No more searching through dozens of websites. The Wildcat Navigator
               knows CSU Chico — and it's ready to help.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -331,7 +331,7 @@ export default function LandingPage() {
                 Built for Every Wildcat
               </h2>
               <p className="mt-2 text-muted-foreground max-w-xl mx-auto">
-                Students, faculty, staff, visitors, and community members — the Wildcat AI Concierge is for everyone.
+                Students, faculty, staff, visitors, and community members — the Wildcat Navigator is for everyone.
               </p>
             </div>
 
@@ -372,7 +372,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl" aria-hidden="true">🐾</span>
                 <div>
-                  <div className="font-bold text-sm">Wildcat AI Concierge</div>
+                  <div className="font-bold text-sm">Wildcat Navigator</div>
                   <div className="text-xs text-white/60">California State University, Chico</div>
                 </div>
               </div>
@@ -425,7 +425,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-            <span>© 2026 Chico State · Wildcat AI Concierge Prototype</span>
+            <span>© 2026 Chico State · Wildcat Navigator Prototype</span>
             <span>Powered by <span className="text-white/60">Amazon Bedrock</span> · CSU Chico AI Summer Camp</span>
             <nav aria-label="Footer legal links" className="flex gap-4">
               <a href="/about#accessibility" className="hover:text-white/70 transition-colors">Accessibility</a>

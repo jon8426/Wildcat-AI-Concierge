@@ -1,5 +1,5 @@
 """
-Chat router — main conversational endpoint for the Wildcat AI Concierge.
+Chat router — main conversational endpoint for the Wildcat Navigator.
 """
 from __future__ import annotations
 

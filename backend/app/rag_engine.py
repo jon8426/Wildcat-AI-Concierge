@@ -1,5 +1,5 @@
 """
-RAG Engine for the Wildcat AI Concierge.
+RAG Engine for the Wildcat Navigator.
 
 Supports two modes:
   - Dev mode  : ChromaDB + sentence-transformers (all-MiniLM-L6-v2), mock LLM
@@ -911,7 +911,7 @@ class RAGEngine:
             )
         else:
             system_prompt = (
-                "You are the Wildcat AI Concierge, a helpful assistant for California State "
+                "You are the Wildcat Navigator, a helpful assistant for California State "
                 "University, Chico (CSU Chico). Answer the student's question using ONLY the "
                 "provided context. Be concise, friendly, and accurate. If the context does "
                 "not contain enough information, say so and direct the student to the "

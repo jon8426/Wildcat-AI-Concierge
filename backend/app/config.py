@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ──────────────────────────────────────────────────────────
-    app_name: str = "Wildcat AI Concierge"
+    app_name: str = "Wildcat Navigator"
     app_version: str = "1.0.0"
     dev_mode: bool = Field(default=True, description="Enable dev/mock mode (no AWS required)")
     debug: bool = Field(default=False)
