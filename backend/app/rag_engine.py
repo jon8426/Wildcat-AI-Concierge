@@ -701,6 +701,9 @@ class RAGEngine:
             lines = text.split('\n')
             formatted_lines = []
             for line in lines:
+                # Skip table header rows
+                if line.strip().lower().startswith('building') and 'apple maps' in line.lower() and 'google maps' in line.lower():
+                    continue
                 if '|' in line and 'http' in line:
                     formatted = _format_building_line(line)
                     if formatted:
